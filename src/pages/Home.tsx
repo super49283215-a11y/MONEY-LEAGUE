@@ -73,11 +73,11 @@ export default function Home() {
               href={sponsor.url} 
               target="_blank" 
               rel="noreferrer"
-              initial={{ opacity: 0.4 }}
+              initial={{ opacity: 0.8 }}
               whileHover={{ opacity: 1, scale: 1.05, textShadow: "0 0 15px rgba(255,255,255,0.5)" }}
-              className="flex items-center gap-3 text-xl md:text-2xl font-display font-black tracking-tighter text-white/60 hover:text-white transition-all duration-300"
+              className="flex items-center gap-3 text-xl md:text-2xl font-display font-black tracking-tighter text-white hover:text-white transition-all duration-300"
             >
-              <sponsor.icon size={22} className="text-white/40 group-hover:text-white" />
+              <sponsor.icon size={22} className="text-white group-hover:text-white" />
               {sponsor.name}
             </motion.a>
           ))}

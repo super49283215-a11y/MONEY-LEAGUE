@@ -59,7 +59,7 @@ export default function History() {
             <div className="relative z-10 flex flex-col gap-12">
               {/* Header: Edition Info */}
               <div className="space-y-4">
-                <span className="font-mono text-sm font-black tracking-[0.5em] text-white/10 uppercase block italic border-b border-white/5 pb-4">
+                <span className="font-mono text-sm font-black tracking-[0.5em] text-[#D4AF37] uppercase block italic border-b border-white/5 pb-4">
                   {league.edition}
                 </span>
 
