@@ -44,9 +44,14 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="flex flex-col md:flex-row gap-4 justify-center pt-8"
           >
-            <Link to="/info" className="px-8 py-4 bg-white text-[#050A30] font-bold rounded-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
+            <a 
+              href="https://open.kakao.com/o/glBaXr9h" 
+              target="_blank" 
+              rel="noreferrer"
+              className="px-8 py-4 bg-white text-[#050A30] font-bold rounded-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
+            >
               Join the League <ArrowRight size={18} />
-            </Link>
+            </a>
             <Link to="/news" className="px-8 py-4 glass text-white font-bold rounded-lg hover:bg-white/10 transition-all text-xs uppercase tracking-widest">
               Latest News
             </Link>

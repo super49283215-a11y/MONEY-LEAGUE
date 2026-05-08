@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { BRAND, NAVIGATION } from "../../constants";
-import { Menu, X, ChevronRight, Youtube, Instagram, MessageSquare } from "lucide-react";
+import { Menu, X, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -19,7 +19,7 @@ export default function Navbar() {
           >
             <span className="text-[#050A30] font-display font-black text-xl">M</span>
           </motion.div>
-          <span className="font-display font-black text-2xl tracking-tighter">
+          <span className="font-display font-black text-2xl tracking-tighter text-white">
             {BRAND.logoText}
           </span>
         </Link>
@@ -59,7 +59,7 @@ export default function Navbar() {
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="md:hidden fixed inset-0 top-[72px] bg-[#050A30] z-50 p-8 flex flex-col gap-6 shadow-2xl h-fit border-b border-white/20"
+          className="md:hidden fixed inset-0 top-[72px] bg-[#050A30]/80 backdrop-blur-3xl z-50 p-8 flex flex-col gap-6 shadow-2xl h-fit border-b border-white/20"
         >
           {NAVIGATION.map((item) => (
             <Link 

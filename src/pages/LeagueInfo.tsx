@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Trophy, Target, ShieldCheck, HelpCircle } from "lucide-react";
+import { Trophy, Gamepad2, ShieldCheck, HelpCircle } from "lucide-react";
 
 export default function LeagueInfo() {
   return (
@@ -13,8 +13,7 @@ export default function LeagueInfo() {
           LEAGUE INFO
         </motion.h1>
         <p className="text-white/60 max-w-2xl mx-auto font-light">
-          머니리그는 FC MOBILE 유저들을 위한 전문 경쟁 플랫폼입니다. <br/>
-          누구나 공정한 환경에서 최고의 자리에 도전할 수 있습니다.
+          머니 리그는 FC MOBILE 유저들을 위한 공정하고 박진감 넘치는 경쟁의 장입니다. 아래 규칙과 참가를 위한 상세 정보를 확인하세요.
         </p>
       </section>
 
@@ -25,14 +24,14 @@ export default function LeagueInfo() {
             <div className="w-10 h-10 glass rounded-lg flex items-center justify-center">
               <ShieldCheck className="text-white" size={20} />
             </div>
-            <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">리그 규칙</h2>
+            <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">대회 규칙</h2>
           </div>
           <div className="space-y-4">
             {[
-              "경기 모드: 일반 모드(Head to Head) 기반 정식 토너먼트",
-              "팀 오버롤 제한: 해당 시즌 공지에 따라 매 시즌 변동",
-              "비매너 행위: 시간 끌기, 비속어 사용 시 즉시 몰수패 및 영구 제명",
-              "네트워크: 원활한 경기를 위해 WI-FI 환경 권장",
+              "모든 경기는 FC MOBILE을 이용하여 조별, 토너먼트를 진행한다.",
+              "네트워크 환경으로 인한 튕김은 협의 후 재경기를 진행한다.",
+              "비매너 행위(볼돌,무한임티 등)는 적발 즉시 탈락 처리 한다.",
+              "대회 세부적인 안내는 추후 조별 리그 오픈톡방에서 안내/확인 한다.",
             ].map((rule, i) => (
               <div key={i} className="p-5 glass rounded-xl border border-white/5 flex items-start gap-4">
                 <span className="text-white/20 font-display font-bold">0{i+1}</span>
@@ -53,50 +52,30 @@ export default function LeagueInfo() {
               <h2 className="text-2xl font-bold">상금 규모</h2>
             </div>
             <div className="space-y-2">
-              <p className="text-5xl font-display font-extrabold text-gradient">₩1,000,000</p>
-              <p className="text-white/40 text-sm">총 상금 규모 (우선 시즌 기준)</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6">
-              <div className="text-center">
-                <p className="text-xs text-white/40 uppercase tracking-tighter">1st Place</p>
-                <p className="font-bold">₩500,000</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-white/40 uppercase tracking-tighter">2nd Place</p>
-                <p className="font-bold">₩300,000</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-white/40 uppercase tracking-tighter">3rd Place</p>
-                <p className="font-bold">₩200,000</p>
-              </div>
+              <p className="text-3xl md:text-5xl font-display font-extrabold text-gradient">NEXON 지원+후원금</p>
+              <p className="text-white/40 text-sm">*자세한 내용은 대표자방에 공지</p>
             </div>
           </section>
 
           <section className="space-y-8">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 glass rounded-lg flex items-center justify-center">
-                <Target className="text-white" size={20} />
+                <Gamepad2 className="text-white" size={20} />
               </div>
-              <h2 className="text-2xl font-bold italic">참가 방법</h2>
+              <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">참가 방법</h2>
             </div>
-            <ol className="space-y-4">
-              {[
-                "머니리그 공식 디스코드 채널 입장",
-                "참가 신청 탭에서 구글 폼 작성",
-                "선수 선발 안내 확인 및 단톡방 참여",
-                "지정된 일정에 맞춰 경기 진행",
-              ].map((step, i) => (
-                <li key={i} className="flex gap-4 items-center">
-                  <div className="w-6 h-6 rounded-full bg-white text-[#050A30] flex items-center justify-center text-[10px] font-bold">
-                    {i+1}
-                  </div>
-                  <p className="text-white/60 font-light text-sm">{step}</p>
-                </li>
-              ))}
-            </ol>
-            <button className="w-full py-4 glass rounded-xl font-bold hover:bg-white/10 transition-all">
-              디스코드 채널 바로가기
-            </button>
+            <div className="space-y-4">
+              <p className="text-white/80 font-bold">MONEY LEAGUE 카카오 오픈톡으로 신청하세요</p>
+              <p className="text-white/60 text-sm">카카오톡 공식 오픈톡 입장하기</p>
+              <a 
+                href="https://open.kakao.com/o/glBaXr9h" 
+                target="_blank" 
+                rel="noreferrer"
+                className="block w-full py-4 glass rounded-xl font-bold hover:bg-white/10 transition-all text-center"
+              >
+                오픈톡 참여하기
+              </a>
+            </div>
           </section>
         </div>
       </div>
@@ -108,10 +87,10 @@ export default function LeagueInfo() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
-            { q: "참가비가 있나요?", a: "아니요, 머니리그 모든 경기는 참가비 없이 무료로 진행됩니다." },
-            { q: "모바일 기기 제한이 있나요?", a: "기기 제한은 없으나 원활한 게임 구동이 가능한 스펙을 권장합니다." },
-            { q: "상금 지급 방식은 어떻게 되나요?", a: "리그 종료 후 7일 이내에 본인 명의 계좌로 지급됩니다." },
-            { q: "대리 참여가 가능한가요?", a: "불가능합니다. 적발 시 영구 제명 및 상금 회수 조치가 취해집니다." }
+            { q: "참가비가 있나요?", a: "소정의 참가비가 있을수 있습니다." },
+            { q: "상금 지급 방식은 어떻게 되나요?", a: "대회 종료 후 30일 이내 FC MOBILE 본인 가입 계정으로 지금됩니다." },
+            { q: "대회는 몇일간 진행 되나요?", a: "조별 예선은 5~7일 본선은 방송스케쥴에 따라 2~3일 정도 소요됩니다. 총 대회 기간은 7일~14일 사이입니다." },
+            { q: "참가 인원 교체 가능한가요?", a: "정해진 기간내에 참기 인원 교체가 가능합니다." }
           ].map((faq, i) => (
             <div key={i} className="p-6 glass rounded-2xl space-y-2">
               <div className="flex items-center gap-2 text-white/40">
