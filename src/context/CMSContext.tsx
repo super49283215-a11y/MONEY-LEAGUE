@@ -1,63 +1,69 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { NewsPost } from "../types";
+import { db, auth } from "../lib/firebase";
+import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  updateDoc, 
+  query, 
+  orderBy,
+  serverTimestamp
+} from "firebase/firestore";
 
 interface CMSContextType {
   posts: NewsPost[];
-  addPost: (post: Omit<NewsPost, "id" | "date">) => void;
-  deletePost: (id: string) => void;
-  updatePost: (id: string, post: Partial<NewsPost>) => void;
+  addPost: (post: Omit<NewsPost, "id" | "date">) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
+  updatePost: (id: string, post: Partial<NewsPost>) => Promise<void>;
+  loading: boolean;
 }
 
 const CMSContext = createContext<CMSContextType | undefined>(undefined);
 
-const INITIAL_POSTS: NewsPost[] = [
-  {
-    id: "1",
-    title: "제1회 MONEY LEAGUE 개최 안내",
-    content: "총 상금 1,000,000원! FC MOBILE 최강자를 가리는 첫 번째 머니 리그가 시작됩니다. 지금 바로 참가 신청하세요.",
-    category: "공지사항",
-    date: new Date().toLocaleDateString(),
-    imageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: "2",
-    title: "FC MOBILE 최신 전술 가이드: 4-3-3 홀딩",
-    content: "현 메타에서 가장 안정적인 4-3-3 홀딩 전술의 상세 설정과 선수 기용 팁을 공개합니다.",
-    category: "가이드",
-    date: new Date().toLocaleDateString(),
-    imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800",
-  },
-];
-
 export function CMSProvider({ children }: { children: React.ReactNode }) {
-  const [posts, setPosts] = useState<NewsPost[]>(() => {
-    const saved = localStorage.getItem("ml_posts");
-    return saved ? JSON.parse(saved) : INITIAL_POSTS;
-  });
+  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem("ml_posts", JSON.stringify(posts));
-  }, [posts]);
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const postsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().createdAt?.toDate()?.toLocaleDateString() || new Date().toLocaleDateString(),
+      })) as NewsPost[];
+      setPosts(postsData);
+      setLoading(false);
+    });
 
-  const addPost = (postData: Omit<NewsPost, "id" | "date">) => {
-    const newPost: NewsPost = {
+    return () => unsubscribe();
+  }, []);
+
+  const addPost = async (postData: Omit<NewsPost, "id" | "date" | "category">) => {
+    if (!auth.currentUser) throw new Error("Authentication required");
+    
+    await addDoc(collection(db, "posts"), {
       ...postData,
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toLocaleDateString(),
-    };
-    setPosts([newPost, ...posts]);
+      category: "게시판", // Default category
+      authorId: auth.currentUser.uid,
+      authorName: auth.currentUser.displayName || "익명",
+      createdAt: serverTimestamp(),
+    });
   };
 
-  const deletePost = (id: string) => {
-    setPosts(posts.filter((p) => p.id !== id));
+  const deletePost = async (id: string) => {
+    await deleteDoc(doc(db, "posts", id));
   };
 
-  const updatePost = (id: string, postUpdate: Partial<NewsPost>) => {
-    setPosts(posts.map((p) => (p.id === id ? { ...p, ...postUpdate } : p)));
+  const updatePost = async (id: string, postUpdate: Partial<NewsPost>) => {
+    await updateDoc(doc(db, "posts", id), postUpdate);
   };
 
   return (
-    <CMSContext.Provider value={{ posts, addPost, deletePost, updatePost }}>
+    <CMSContext.Provider value={{ posts, addPost, deletePost, updatePost, loading }}>
       {children}
     </CMSContext.Provider>
   );

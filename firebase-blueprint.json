@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "NewsPost": {
+      "title": "News Post",
+      "description": "A news article or announcement.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the post." },
+        "content": { "type": "string", "description": "The main text content." },
+        "category": { "type": "string", "enum": ["공지사항", "뉴스"], "description": "Category of the post." },
+        "imageUrl": { "type": "string", "description": "Optional banner image URL." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created." },
+        "authorId": { "type": "string", "description": "ID of the admin who created it." }
+      },
+      "required": ["title", "content", "category", "createdAt", "authorId"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "NewsPost",
+      "description": "Collection of news posts."
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string" }
+        }
+      },
+      "description": "Authorized administrators."
+    }
+  }
+}

@@ -1,12 +1,7 @@
 import { motion } from "motion/react";
-import { useCMS } from "../context/CMSContext";
 import { Trophy, Users, Zap, ArrowRight, ShieldCheck, Youtube, Star, Flame } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export default function Home() {
-  const { posts } = useCMS();
-  const latestPosts = posts.slice(0, 3);
-
   return (
     <div className="pt-24 space-y-24 pb-24">
       {/* Hero Section */}
@@ -52,9 +47,6 @@ export default function Home() {
             >
               Join the League <ArrowRight size={18} />
             </a>
-            <Link to="/news" className="px-8 py-4 glass text-white font-bold rounded-lg hover:bg-white/10 transition-all text-xs uppercase tracking-widest">
-              Latest News
-            </Link>
           </motion.div>
         </div>
       </section>
@@ -108,39 +100,6 @@ export default function Home() {
             <p className="text-white/50 leading-relaxed font-light">{f.desc}</p>
           </motion.div>
         ))}
-      </section>
-
-      {/* Latest News Preview */}
-      <section className="max-w-7xl mx-auto px-6 space-y-12">
-        <div className="flex justify-between items-end">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-display font-bold">LATEST NEWS</h2>
-            <p className="text-white/40">머니리그의 최신 소식을 확인하세요</p>
-          </div>
-          <Link to="/news" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-            전체보기 +
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-          {latestPosts.map((post) => (
-            <Link key={post.id} to="/news" className="group space-y-4">
-              <div className="aspect-video overflow-hidden rounded-2xl glass mb-2 relative">
-                <img 
-                  src={post.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800"} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  alt={post.title}
-                />
-                <div className="absolute top-4 left-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  {post.category}
-                </div>
-              </div>
-              <h4 className="text-lg font-bold group-hover:text-white/80 transition-colors line-clamp-1">{post.title}</h4>
-              <p className="text-white/40 text-sm line-clamp-2 font-light">{post.content}</p>
-              <div className="text-[10px] text-white/30 font-medium uppercase tracking-widest">{post.date}</div>
-            </Link>
-          ))}
-        </div>
       </section>
     </div>
   );

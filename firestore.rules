@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidNewsPost(data) {
+      return data.keys().hasAll(['title', 'content', 'createdAt', 'authorId']) 
+          && data.keys().size() <= 7
+          && data.title is string && data.title.size() <= 200
+          && data.content is string && data.content.size() <= 10000
+          && data.authorId == request.auth.uid;
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidNewsPost(incoming());
+      allow update: if (isAdmin() || (isSignedIn() && existing().authorId == request.auth.uid))
+                    && isValidNewsPost(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'imageUrl']);
+      allow delete: if isAdmin() || (isSignedIn() && existing().authorId == request.auth.uid);
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && adminId == request.auth.uid;
+      // Bootstrapped admin check is handled via manual seeding or rule-level logic if needed
+      // For now, let's allow the user to see if they are an admin
+    }
+  }
+}

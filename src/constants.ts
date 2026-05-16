@@ -27,5 +27,4 @@ export const NAVIGATION = [
   { name: "INFO", path: "/info" },
   { name: "HISTORY", path: "/history" },
   { name: "MATCH", path: "/match" },
-  { name: "NEWS", path: "/news" },
 ];

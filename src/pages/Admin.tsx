@@ -1,43 +1,76 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useCMS } from "../context/CMSContext";
 import { motion } from "motion/react";
 import { LayoutDashboard, FileText, Settings, Plus, Trash2, Edit3, Save, X, Power } from "lucide-react";
 import { NewsPost } from "../types";
+import { auth, signInWithGoogle, db } from "../lib/firebase";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Admin() {
-  const { posts, addPost, deletePost, updatePost } = useCMS();
+  const { posts, addPost, deletePost, updatePost, loading } = useCMS();
   const [activeTab, setActiveTab] = useState<"posts" | "settings">("posts");
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [pw, setPw] = useState("");
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
-  const [formData, setFormData] = useState<Omit<NewsPost, "id" | "date">>({
+  const [formData, setFormData] = useState<Omit<NewsPost, "id" | "date" | "category">>({
     title: "",
     content: "",
-    category: "공지사항",
     imageUrl: "",
   });
 
-  const handleLogin = (e: FormEvent) => {
-    e.preventDefault();
-    if (pw === "admin") setIsAuthenticated(true);
-    else alert("비밀번호가 틀렸습니다. (힌트: admin)");
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setAuthUser(user);
+      if (user) {
+        // Check if user is in admins collection
+        const adminDoc = await getDoc(doc(db, "admins", user.uid));
+        setIsAdmin(adminDoc.exists());
+      } else {
+        setIsAdmin(false);
+      }
+      setCheckingAdmin(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Login failed", error);
+      alert("로그인에 실패했습니다.");
+    }
   };
 
-  const handleCreate = (e: FormEvent) => {
-    e.preventDefault();
-    addPost(formData);
-    setFormData({ title: "", content: "", category: "공지사항", imageUrl: "" });
-    setIsAdding(false);
+  const handleLogout = async () => {
+    await signOut(auth);
   };
 
-  const handleUpdate = (id: string) => {
-    const postToEdit = posts.find((p) => p.id === id);
-    if (!postToEdit) return;
-    updatePost(id, formData);
-    setEditingId(null);
-    setFormData({ title: "", content: "", category: "공지사항", imageUrl: "" });
+  const handleCreate = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      await addPost(formData);
+      setFormData({ title: "", content: "", imageUrl: "" });
+      setIsAdding(false);
+    } catch (error) {
+      console.error(error);
+      alert("게시글 업로드 실패");
+    }
+  };
+
+  const handleUpdate = async (id: string) => {
+    try {
+      await updatePost(id, formData);
+      setEditingId(null);
+      setFormData({ title: "", content: "", imageUrl: "" });
+    } catch (error) {
+      console.error(error);
+      alert("수정 실패");
+    }
   };
 
   const startEditing = (post: NewsPost) => {
@@ -45,31 +78,51 @@ export default function Admin() {
     setFormData({
       title: post.title,
       content: post.content,
-      category: post.category,
       imageUrl: post.imageUrl || "",
     });
+    setIsAdding(true);
   };
 
-  if (!isAuthenticated) {
+  if (checkingAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050A30]">
+        <div className="animate-pulse text-white/40 font-display font-black text-2xl uppercase tracking-tighter">
+          Verifying Admin...
+        </div>
+      </div>
+    );
+  }
+
+  if (!authUser || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050A30] px-6">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md p-10 glass rounded-3xl border border-white/10 space-y-8 text-center">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-display font-black tracking-tighter">ADMIN ACCESS</h1>
-            <p className="text-white/40 text-sm">머니리그 관리자 대시보드에 접속합니다.</p>
+          <div className="space-y-4">
+            <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+              <Settings className="text-white/40" size={40} />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-display font-black tracking-tighter uppercase">ADMIN ACCESS</h1>
+              {authUser && !isAdmin ? (
+                <p className="text-red-400 text-sm font-bold">승인된 관리자 계정이 아닙니다.<br/><span className="text-white/40 font-normal">관리자 권한이 필요합니다.</span></p>
+              ) : (
+                <p className="text-white/40 text-sm">머니리그 관리자 대시보드에 접속합니다.</p>
+              )}
+            </div>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input 
-              type="password" 
-              placeholder="Admin Password" 
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              className="w-full px-6 py-4 glass rounded-xl focus:outline-none focus:ring-1 focus:ring-white/20"
-            />
-            <button className="w-full py-4 bg-white text-[#050A30] font-bold rounded-xl transition-all hover:bg-gray-200">
-              로그인
-            </button>
-          </form>
+          
+          <button 
+            onClick={authUser ? handleLogout : handleLogin}
+            className="w-full py-4 bg-white text-[#050A30] font-bold rounded-xl transition-all hover:bg-gray-200 flex items-center justify-center gap-3"
+          >
+            {authUser ? "로그아웃" : "구글 계정으로 로그인"}
+          </button>
+          
+          {authUser && !isAdmin && (
+            <p className="text-[10px] text-white/20 uppercase tracking-widest break-all">
+              UID: {authUser.uid}
+            </p>
+          )}
         </motion.div>
       </div>
     );
@@ -79,6 +132,10 @@ export default function Admin() {
     <div className="min-h-screen pt-24 flex flex-col md:flex-row bg-[#050A30]">
       {/* Sidebar */}
       <aside className="w-full md:w-64 border-r border-white/10 p-6 flex flex-col gap-2">
+        <div className="mb-8 px-4 py-3 glass rounded-xl border border-white/5">
+          <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Authenticated as</p>
+          <p className="text-sm font-bold truncate text-white">{authUser.displayName || authUser.email}</p>
+        </div>
         <button 
           onClick={() => setActiveTab("posts")}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === "posts" ? "bg-white/10 text-white font-bold" : "text-white/40 hover:bg-white/5"}`}
@@ -92,7 +149,7 @@ export default function Admin() {
           <Settings size={18} /> 사이트 설정
         </button>
         <div className="mt-auto pt-6 border-t border-white/10">
-          <button onClick={() => setIsAuthenticated(false)} className="flex items-center gap-3 px-4 py-3 text-red-400 w-full hover:bg-red-400/10 rounded-xl transition-all">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-red-400 w-full hover:bg-red-400/10 rounded-xl transition-all">
             <Power size={18} /> 로그아웃
           </button>
         </div>
@@ -124,7 +181,7 @@ export default function Admin() {
                   <button onClick={() => { setIsAdding(false); setEditingId(null); }} className="text-white/40 hover:text-white"><X size={20}/></button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                  <div className="md:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-white/40 uppercase tracking-widest">제목</label>
                     <input 
                       type="text" 
@@ -132,18 +189,6 @@ export default function Admin() {
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-white/40 uppercase tracking-widest">카테고리</label>
-                    <select 
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value as any})}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none appearance-none"
-                    >
-                      <option value="공지사항">공지사항</option>
-                      <option value="뉴스">뉴스</option>
-                      <option value="가이드">가이드</option>
-                    </select>
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-white/40 uppercase tracking-widest">내용</label>
@@ -178,26 +223,32 @@ export default function Admin() {
 
             {/* List */}
             <div className="space-y-4">
-              {posts.map((post) => (
-                <div key={post.id} className="p-6 glass rounded-2xl border border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="flex gap-4 items-center w-full">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden glass shrink-0">
-                      <img src={post.imageUrl} className="w-full h-full object-cover" alt="" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black tracking-widest uppercase text-white/40">{post.category}</span>
-                        <span className="text-[10px] text-white/20">{post.date}</span>
+              {loading ? (
+                <div className="text-center py-12 text-white/20 uppercase tracking-widest font-bold">Loading Posts...</div>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-12 glass rounded-3xl border border-white/5 text-white/20 uppercase tracking-widest font-bold">No posts found</div>
+              ) : (
+                posts.map((post) => (
+                  <div key={post.id} className="p-6 glass rounded-2xl border border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex gap-4 items-center w-full">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden glass shrink-0">
+                        <img src={post.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=200"} className="w-full h-full object-cover" alt="" />
                       </div>
-                      <h4 className="font-bold line-clamp-1">{post.title}</h4>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-black tracking-widest uppercase text-white/40">{post.category}</span>
+                          <span className="text-[10px] text-white/20">{post.date}</span>
+                        </div>
+                        <h4 className="font-bold line-clamp-1">{post.title}</h4>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto shrink-0">
+                      <button onClick={() => startEditing(post)} className="flex-1 md:flex-none p-3 hover:bg-white/10 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold"><Edit3 size={16}/> 수정</button>
+                      <button onClick={() => deletePost(post.id)} className="flex-1 md:flex-none p-3 hover:bg-red-400/10 text-red-400 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold"><Trash2 size={16}/> 삭제</button>
                     </div>
                   </div>
-                  <div className="flex gap-2 w-full md:w-auto shrink-0">
-                    <button onClick={() => startEditing(post)} className="flex-1 md:flex-none p-3 hover:bg-white/10 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold"><Edit3 size={16}/> 수정</button>
-                    <button onClick={() => deletePost(post.id)} className="flex-1 md:flex-none p-3 hover:bg-red-400/10 text-red-400 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold"><Trash2 size={16}/> 삭제</button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         ) : (
