@@ -17,7 +17,7 @@ export default function Footer() {
             <a href="#" className="hover:text-white transition-colors">개인정보 처리방침</a>
           </div>
           <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest leading-loose">
-            © 2026 {BRAND.name}. All rights reserved.
+            © 2025 {BRAND.name}. All rights reserved.
           </p>
         </div>
       </div>
