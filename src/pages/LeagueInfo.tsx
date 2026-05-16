@@ -3,7 +3,7 @@ import { Trophy, Gamepad2, ShieldCheck, HelpCircle } from "lucide-react";
 
 export default function LeagueInfo() {
   return (
-    <div className="pt-32 pb-24 px-6 space-y-24 max-w-7xl mx-auto">
+    <div className="pt-8 pb-24 px-6 space-y-24 max-w-7xl mx-auto">
       <section className="text-center space-y-6">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
@@ -43,15 +43,14 @@ export default function LeagueInfo() {
 
         {/* Prize & Join */}
         <div className="space-y-12">
-          <section className="space-y-8 p-8 glass rounded-2xl border border-white/10 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
+          <section className="space-y-8">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 glass rounded-lg flex items-center justify-center">
                 <Trophy className="text-yellow-400" size={20} />
               </div>
-              <h2 className="text-2xl font-bold">상금 규모</h2>
+              <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">상금 규모</h2>
             </div>
-            <div className="space-y-2">
+            <div className="p-8 glass rounded-2xl border border-white/5 space-y-4">
               <p className="text-3xl md:text-5xl font-display font-extrabold text-gradient">NEXON 지원+후원금</p>
               <p className="text-white/40 text-sm">*자세한 내용은 대표자방에 공지</p>
             </div>
@@ -65,15 +64,13 @@ export default function LeagueInfo() {
               <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">참가 방법</h2>
             </div>
             <div className="space-y-4">
-              <p className="text-white/80 font-bold">MONEY LEAGUE 카카오 오픈톡으로 신청하세요</p>
-              <p className="text-white/60 text-sm">카카오톡 공식 오픈톡 입장하기</p>
               <a 
                 href="https://open.kakao.com/o/glBaXr9h" 
                 target="_blank" 
                 rel="noreferrer"
                 className="block w-full py-4 glass rounded-xl font-bold hover:bg-white/10 transition-all text-center"
               >
-                오픈톡 참여하기
+                공식 오픈톡 참여하기
               </a>
             </div>
           </section>
@@ -82,21 +79,20 @@ export default function LeagueInfo() {
 
       {/* FAQ */}
       <section className="space-y-12">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold">자주 묻는 질문</h2>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 glass rounded-lg flex items-center justify-center">
+            <HelpCircle className="text-white" size={20} />
+          </div>
+          <h2 className="text-2xl font-bold underline decoration-white/20 underline-offset-8">자주 묻는 질문</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
             { q: "참가비가 있나요?", a: "소정의 참가비가 있을수 있습니다." },
             { q: "상금 지급 방식은 어떻게 되나요?", a: "대회 종료 후 30일 이내 FC MOBILE 본인 가입 계정으로 지금됩니다." },
-            { q: "대회는 몇일간 진행 되나요?", a: "조별 예선은 5~7일 본선은 방송스케쥴에 따라 2~3일 정도 소요됩니다. 총 대회 기간은 7일~14일 사이입니다." },
-            { q: "참가 인원 교체 가능한가요?", a: "정해진 기간내에 참기 인원 교체가 가능합니다." }
+            { q: "대회는 며칠간 진행 되나요?", a: "조별예선,본선 포함 총 대회 기간은 7일-14일 사이입니다." },
+            { q: "클랜원 교체는 가능한가요?", a: "대회가 시작되기전, 정해진 기간내에 인원 교체가 가능합니다." }
           ].map((faq, i) => (
-            <div key={i} className="p-6 glass rounded-2xl space-y-2">
-              <div className="flex items-center gap-2 text-white/40">
-                <HelpCircle size={16} />
-                <span className="text-xs font-bold uppercase tracking-wider">Question</span>
-              </div>
+            <div key={i} className="p-6 glass rounded-2xl space-y-3">
               <h4 className="text-lg font-bold">Q. {faq.q}</h4>
               <p className="text-white/50 text-sm font-light leading-relaxed">A. {faq.a}</p>
             </div>

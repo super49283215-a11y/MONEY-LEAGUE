@@ -38,7 +38,7 @@ const HISTORY_DATA = [
 export default function History() {
   const [hoveredTrophy, setHoveredTrophy] = useState<number | null>(null);
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto space-y-16">
+    <div className="pt-8 pb-24 px-6 max-w-7xl mx-auto space-y-16">
       <section className="space-y-4">
         <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter">HISTORY</h1>
         <p className="text-white/40 font-light text-lg">머니리그의 찬란한 역사를 기록합니다.</p>

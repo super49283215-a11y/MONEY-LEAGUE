@@ -3,7 +3,7 @@ import { Trophy, Users, Zap, ArrowRight, ShieldCheck, Youtube, Star, Flame } fro
 
 export default function Home() {
   return (
-    <div className="pt-24 space-y-24 pb-24">
+    <div className="pt-0 space-y-24 pb-24">
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">

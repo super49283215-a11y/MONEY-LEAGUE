@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 
 export default function Match() {
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto space-y-12">
+    <div className="pt-8 pb-24 px-6 max-w-7xl mx-auto space-y-12">
       <section className="space-y-4">
         <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight">MATCH</h1>
         <p className="text-white/40 font-light">진행 중인 토너먼트 대진표와 실시간 스코어를 확인하세요.</p>
