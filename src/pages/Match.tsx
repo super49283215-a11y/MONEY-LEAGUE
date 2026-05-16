@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Trophy, Sword, LayoutGrid, ListFilter, Save, Info } from "lucide-react";
+import { ChevronLeft, Trophy, Sword, LayoutGrid, ListFilter, Save, Info, Camera, X as CloseIcon } from "lucide-react";
 
 // Types
 interface SetResult {
@@ -19,6 +19,7 @@ interface MatchRecord {
   awayScore: number;
   sets: SetResult[];
   isCompleted: boolean;
+  screenshots: string[]; // Base64 strings
 }
 
 interface TeamStats {
@@ -48,6 +49,7 @@ const generateInitialMatches = () => {
         homeScore: 0,
         awayScore: 0,
         isCompleted: false,
+        screenshots: [],
         sets: Array.from({ length: 5 }, () => ({
           homePlayer: "",
           awayPlayer: "",
@@ -63,8 +65,16 @@ const generateInitialMatches = () => {
 
 export default function Match() {
   const [activeView, setActiveView] = useState<"standings" | "list" | "detail">("standings");
-  const [matches, setMatches] = useState<MatchRecord[]>(generateInitialMatches());
+  const [matches, setMatches] = useState<MatchRecord[]>(() => {
+    const saved = localStorage.getItem("money_league_matches");
+    return saved ? JSON.parse(saved) : generateInitialMatches();
+  });
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+
+  // Persistence
+  useEffect(() => {
+    localStorage.setItem("money_league_matches", JSON.stringify(matches));
+  }, [matches]);
 
   // Derived Standings
   const standings = useMemo(() => {
@@ -111,7 +121,7 @@ export default function Match() {
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId);
 
-  const handleSaveMatch = (matchId: string, updatedSets: SetResult[]) => {
+  const handleSaveMatch = (matchId: string, updatedSets: SetResult[], screenshots: string[]) => {
     setMatches((prev) =>
       prev.map((m) => {
         if (m.id === matchId) {
@@ -123,6 +133,7 @@ export default function Match() {
             homeScore: homeWins,
             awayScore: awayWins,
             isCompleted: true,
+            screenshots: screenshots,
           };
         }
         return m;
@@ -136,16 +147,8 @@ export default function Match() {
       {/* Header */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-              <Sword className="text-white" size={24} />
-            </div>
-            <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter uppercase italic text-white">MATCH</h1>
-          </div>
-          <p className="text-white/40 font-light max-w-xl text-sm md:text-base">
-            6개 클랜의 치열한 풀리그 현장을 확인하세요. <br className="hidden md:block" />
-            모든 결과는 실시간으로 순위표에 반영됩니다.
-          </p>
+          <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter uppercase text-white">MATCH</h1>
+          <p className="text-white/40 font-light text-sm md:text-base">모든 결과는 실시간으로 순위표에 반영됩니다.</p>
         </div>
 
         {activeView !== "detail" && (
@@ -279,7 +282,7 @@ export default function Match() {
                     </div>
                     
                     <div className="flex flex-col items-center gap-1">
-                      <div className="text-3xl font-display font-black italic tracking-tighter">
+                      <div className="text-3xl font-display font-black tracking-tighter">
                         {match.isCompleted ? `${match.homeScore} : ${match.awayScore}` : "VS"}
                       </div>
                       <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${match.isCompleted ? "bg-green-500/20 text-green-400" : "bg-white/10 text-white/30"}`}>
@@ -314,7 +317,7 @@ export default function Match() {
           <MatchDetailView 
             match={selectedMatch} 
             onBack={() => setActiveView("list")} 
-            onSave={(updatedSets) => handleSaveMatch(selectedMatch.id, updatedSets)}
+            onSave={(updatedSets, screenshots) => handleSaveMatch(selectedMatch.id, updatedSets, screenshots)}
           />
         )}
       </AnimatePresence>
@@ -322,8 +325,10 @@ export default function Match() {
   );
 }
 
-function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack: () => void; onSave: (sets: SetResult[]) => void }) {
+function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack: () => void; onSave: (sets: SetResult[], screenshots: string[]) => void }) {
   const [sets, setSets] = useState<SetResult[]>(match.sets);
+  const [screenshots, setScreenshots] = useState<string[]>(match.screenshots || []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSetChange = (index: number, field: keyof SetResult, value: string | number) => {
     const newSets = [...sets];
@@ -335,6 +340,23 @@ function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack
     const newSets = [...sets];
     newSets[index] = { ...newSets[index], winner };
     setSets(newSets);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file: File) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshots((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeScreenshot = (index: number) => {
+    setScreenshots((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -358,20 +380,73 @@ function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack
               <div className="w-16 h-16 md:w-24 md:h-24 glass rounded-3xl flex items-center justify-center font-black text-3xl md:text-5xl text-white/20">
                 {match.homeTeam.charAt(0)}
               </div>
-              <h2 className="text-xl md:text-3xl font-display font-black italic tracking-tighter">{match.homeTeam}</h2>
+              <h2 className="text-xl md:text-3xl font-display font-black tracking-tighter">{match.homeTeam}</h2>
             </div>
-            <div className="text-4xl md:text-6xl font-display font-black italic opacity-20">VS</div>
+            <div className="text-4xl md:text-6xl font-display font-black opacity-20">VS</div>
             <div className="space-y-4">
               <div className="w-16 h-16 md:w-24 md:h-24 glass rounded-3xl flex items-center justify-center font-black text-3xl md:text-5xl text-white/20">
                 {match.awayTeam.charAt(0)}
               </div>
-              <h2 className="text-xl md:text-3xl font-display font-black italic tracking-tighter">{match.awayTeam}</h2>
+              <h2 className="text-xl md:text-3xl font-display font-black tracking-tighter">{match.awayTeam}</h2>
             </div>
           </div>
         </div>
 
-        <div className="p-4 md:p-12 space-y-8 overflow-x-auto">
-          <div className="min-w-[800px] space-y-4">
+        <div className="p-4 md:p-12 space-y-12">
+          {/* Screenshots Section */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera className="text-white/40" size={18} />
+                <h3 className="text-sm font-black uppercase tracking-widest">경기 스크린샷</h3>
+              </div>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 glass rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+              >
+                이미지 추가
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                multiple 
+                accept="image/*"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {screenshots.map((src, i) => (
+                <div key={i} className="relative aspect-video rounded-xl overflow-hidden glass border border-white/10 group">
+                  <img src={src} className="w-full h-full object-cover" alt={`Screenshot ${i + 1}`} />
+                  <button 
+                    onClick={() => removeScreenshot(i)}
+                    className="absolute top-2 right-2 p-1.5 bg-black/50 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <CloseIcon size={12} />
+                  </button>
+                </div>
+              ))}
+              {screenshots.length === 0 && (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-video rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-white/20 hover:text-white/40 hover:border-white/20 cursor-pointer transition-all"
+                >
+                  <Camera size={24} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">이미지 업로드</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <Sword className="text-white/40" size={18} />
+              <h3 className="text-sm font-black uppercase tracking-widest">세트별 상세 결과</h3>
+            </div>
+            
+            <div className="min-w-[800px] space-y-4">
             {sets.map((set, i) => (
               <div key={i} className="grid grid-cols-12 items-center gap-4 p-6 glass rounded-2xl border border-white/5 hover:border-white/10 transition-all">
                 <div className="col-span-1">
@@ -392,17 +467,19 @@ function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack
 
                 <div className="col-span-4 flex items-center justify-center gap-3">
                    <input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     value={set.homeScore}
-                    onChange={(e) => handleSetChange(i, "homeScore", parseInt(e.target.value) || 0)}
-                    className="w-16 bg-black/60 border border-white/10 rounded-xl px-2 py-3 text-center text-lg font-bold outline-none"
+                    onChange={(e) => handleSetChange(i, "homeScore", parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0)}
+                    className="w-16 bg-black/60 border border-white/10 rounded-xl px-2 py-3 text-center text-lg font-bold outline-none focus:border-white transition-colors"
                   />
                   <span className="text-white/20 font-black">:</span>
                    <input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     value={set.awayScore}
-                    onChange={(e) => handleSetChange(i, "awayScore", parseInt(e.target.value) || 0)}
-                    className="w-16 bg-black/60 border border-white/10 rounded-xl px-2 py-3 text-center text-lg font-bold outline-none"
+                    onChange={(e) => handleSetChange(i, "awayScore", parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0)}
+                    className="w-16 bg-black/60 border border-white/10 rounded-xl px-2 py-3 text-center text-lg font-bold outline-none focus:border-white transition-colors"
                   />
                 </div>
 
@@ -430,10 +507,11 @@ function MatchDetailView({ match, onBack, onSave }: { match: MatchRecord; onBack
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="flex justify-center pt-8">
+        <div className="flex justify-center pt-8">
             <button 
-              onClick={() => onSave(sets)}
+              onClick={() => onSave(sets, screenshots)}
               className="flex items-center gap-3 px-12 py-5 bg-white text-[#050A30] rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-all outline-none"
             >
               <Save size={18} /> 결과 저장하기

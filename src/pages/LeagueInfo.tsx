@@ -4,7 +4,7 @@ import { Trophy, Gamepad2, ShieldCheck, HelpCircle } from "lucide-react";
 export default function LeagueInfo() {
   return (
     <div className="pt-8 pb-24 px-6 space-y-24 max-w-7xl mx-auto">
-      <section className="text-center space-y-6">
+      <section className="text-left space-y-6">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -12,7 +12,7 @@ export default function LeagueInfo() {
         >
           LEAGUE INFO
         </motion.h1>
-        <p className="text-white/60 max-w-2xl mx-auto font-light">
+        <p className="text-white/60 max-w-2xl font-light">
           머니 리그는 FC MOBILE 유저들을 위한 공정하고 박진감 넘치는 경쟁의 장입니다. 아래 규칙과 참가를 위한 상세 정보를 확인하세요.
         </p>
       </section>
